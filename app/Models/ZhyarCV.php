@@ -13,11 +13,12 @@ class ZhyarCV extends Model
     
     protected $fillable = [
         'title',
+        'professional_title',
         'content',
         'file_path',
         'skills',
         'education',
-        'experience',
+        'work_experience',
         'certifications',
         'is_active',
     ];
@@ -25,7 +26,7 @@ class ZhyarCV extends Model
     protected $casts = [
         'skills' => 'array',
         'education' => 'array',
-        'experience' => 'array',
+        'work_experience' => 'array',
         'certifications' => 'array',
         'is_active' => 'boolean',
     ];

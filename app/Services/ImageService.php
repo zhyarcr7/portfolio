@@ -43,7 +43,7 @@ class ImageService
         
         // Prepare path and store the image
         $path = $folder . '/' . $filename;
-        Storage::put('public/' . $path, $img->encode(quality: $quality)->toString());
+        Storage::put('public/' . $path, $img->encode(null, $quality)->toString());
         
         return $path;
     }
@@ -97,7 +97,7 @@ class ImageService
             }
             
             // Save the processed image back to storage
-            Storage::put('public/' . $path, $img->encode(quality: $quality)->toString());
+            Storage::put('public/' . $path, $img->encode(null, $quality)->toString());
             
             return true;
         } catch (\Exception $e) {

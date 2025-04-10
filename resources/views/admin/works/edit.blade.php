@@ -51,22 +51,32 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700">Current Images</label>
-                            <div class="mt-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                @foreach($work->images ?? [] as $image)
-                                    <div class="relative">
-                                        <img src="{{ Storage::url($image) }}" alt="Work image" class="h-32 w-full object-cover rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700">Current Image</label>
+                            <div class="mt-2">
+                                @if($work->thumbnail_url)
+                                    <div class="relative group w-64">
+                                        <img src="{{ $work->thumbnail_url }}" alt="Work thumbnail" class="h-48 w-full object-cover rounded-lg border border-gray-200 shadow-sm">
+                                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+                                            <a href="{{ $work->image_url }}" target="_blank" class="hidden group-hover:block text-white bg-blue-600 hover:bg-blue-700 p-1 rounded-full">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </a>
+                                        </div>
                                     </div>
-                                @endforeach
+                                @else
+                                    <p class="text-gray-500">No image uploaded yet.</p>
+                                @endif
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <label for="images" class="block text-sm font-medium text-gray-700">Update Images</label>
-                            <input type="file" name="images[]" id="images" multiple
+                            <label for="image" class="block text-sm font-medium text-gray-700">Update Image</label>
+                            <input type="file" name="image" id="image"
                                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                            <p class="mt-1 text-sm text-gray-500">Uploading new images will replace all current images.</p>
-                            @error('images')
+                            <p class="mt-1 text-sm text-gray-500">Uploading a new image will replace the current one.</p>
+                            @error('image')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -90,6 +100,23 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Works -->
+        <div class="mt-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Other Works</h2>
+                    
+                    <div class="related-works">
+                        @if(isset($works) && $works instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                            <div class="mt-6">
+                                {{ $works->links() }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

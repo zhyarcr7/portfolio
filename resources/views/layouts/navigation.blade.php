@@ -18,6 +18,10 @@
                         {{ $item->name }}
                     </x-nav-link>
                 @endforeach
+                <!-- CV Files Navigation -->
+                <x-nav-link :href="route('admin.cv-files.index')" :active="request()->routeIs('admin.cv-files.*')">
+                    {{ __('CV Files') }}
+                </x-nav-link>
                 </div>
             </div>
 
@@ -53,10 +57,10 @@
                         </x-dropdown-link>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ Auth::user()->is_admin ? route('admin.logout') : route('user.logout') }}">
                             @csrf
 
-                            <x-dropdown-link :href="route('logout')"
+                            <x-dropdown-link :href="Auth::user()->is_admin ? route('admin.logout') : route('user.logout')"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
@@ -99,8 +103,17 @@
             <x-responsive-nav-link :href="route('admin.coming-soon.index')" :active="request()->routeIs('admin.coming-soon.*')">
                 {{ __('Coming Soon') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.social-links.index')" :active="request()->routeIs('admin.social-links.*')">
+                {{ __('Social Links') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.contact-information.index')" :active="request()->routeIs('admin.contact-information.*')">
+                {{ __('Contact Info') }}
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin.zhyar-cv.index')" :active="request()->routeIs('admin.zhyar-cv.*')">
                 {{ __('Zhyar CV') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('admin.cv-files.index')" :active="request()->routeIs('admin.cv-files.*')">
+                {{ __('CV Files') }}
             </x-responsive-nav-link>
         </div>
 
@@ -126,10 +139,10 @@
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ Auth::user()->is_admin ? route('admin.logout') : route('user.logout') }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')"
+                    <x-responsive-nav-link :href="Auth::user()->is_admin ? route('admin.logout') : route('user.logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}

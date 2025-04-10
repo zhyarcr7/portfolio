@@ -33,7 +33,7 @@
                                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:text-indigo-100">
                                     {{ __('Dashboard') }}
                                 </x-nav-link>
-                                <x-nav-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" class="text-white hover:text-indigo-100 relative">
+                                <x-nav-link :href="route('chatify')" :active="request()->routeIs('chatify')" class="text-white hover:text-indigo-100 relative">
                                     {{ __('Messages') }}
                                     <span id="unread-message-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                                 </x-nav-link>
@@ -75,9 +75,9 @@
                                     </x-dropdown-link>
 
                                     <!-- Authentication -->
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form method="POST" action="{{ Auth::user()->is_admin ? route('admin.logout') : route('logout') }}">
                                         @csrf
-                                        <x-dropdown-link :href="route('logout')"
+                                        <x-dropdown-link :href="Auth::user()->is_admin ? route('admin.logout') : route('logout')"
                                                 onclick="event.preventDefault();
                                                             this.closest('form').submit();"
                                                 class="text-gray-700 hover:bg-indigo-50">
@@ -96,7 +96,7 @@
                         <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white hover:bg-indigo-700">
                             {{ __('Dashboard') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('chat.index')" :active="request()->routeIs('chat.*')" class="text-white hover:bg-indigo-700 relative flex items-center">
+                        <x-responsive-nav-link :href="route('chatify')" :active="request()->routeIs('chatify')" class="text-white hover:bg-indigo-700 relative flex items-center">
                             {{ __('Messages') }}
                             <span id="mobile-unread-message-count" class="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                         </x-responsive-nav-link>
@@ -129,9 +129,9 @@
                             </x-responsive-nav-link>
 
                             <!-- Authentication -->
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="{{ Auth::user()->is_admin ? route('admin.logout') : route('logout') }}">
                                 @csrf
-                                <x-responsive-nav-link :href="route('logout')"
+                                <x-responsive-nav-link :href="Auth::user()->is_admin ? route('admin.logout') : route('logout')"
                                         onclick="event.preventDefault();
                                                     this.closest('form').submit();"
                                         class="text-white hover:bg-indigo-700">

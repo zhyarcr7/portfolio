@@ -31,7 +31,7 @@
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
                 <!-- Blogs -->
                 <div class="group bg-blue-900/90 backdrop-blur-xl overflow-hidden rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
                     <div class="p-6">
@@ -120,6 +120,58 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- CV Files -->
+                <div class="group bg-blue-900/90 backdrop-blur-xl overflow-hidden rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-300">CV Files</p>
+                                <div class="flex items-baseline gap-2">
+                                    <p class="text-3xl font-bold text-white mt-1">{{ \App\Models\CVFile::count() }}</p>
+                                    @if(\App\Models\CVFile::where('is_active', true)->count() > 0)
+                                    <span class="text-xs text-green-400">{{ \App\Models\CVFile::where('is_active', true)->count() }} active</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4 h-1 w-full bg-blue-800/50 rounded-full overflow-hidden">
+                            <div class="h-1 bg-blue-500/50 w-1/2 rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="group bg-blue-900/90 backdrop-blur-xl overflow-hidden rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-300">Contact Info</p>
+                                <div class="flex items-baseline gap-2">
+                                    <p class="text-3xl font-bold text-white mt-1">{{ $counts['contactInfo'] ?? 0 }}</p>
+                                    @if(isset($contactActive) && $contactActive)
+                                    <span class="text-xs text-green-400">Active</span>
+                                    @else
+                                    <span class="text-xs text-yellow-400">Not Active</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4 h-1 w-full bg-blue-800/50 rounded-full overflow-hidden">
+                            <div class="h-1 bg-blue-500/50 w-{{ isset($contactActive) && $contactActive ? 'full' : '1/4' }} rounded-full"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Quick Actions -->
@@ -128,7 +180,7 @@
                     <h3 class="text-lg font-semibold text-blue-300">Quick Actions</h3>
                     <span class="px-3 py-1 text-xs bg-blue-800/50 text-slate-300 rounded-full">Primary actions</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <!-- New Blog Post -->
                     <a href="{{ route('admin.blogs.create') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
                         <div class="flex items-center">
@@ -164,6 +216,24 @@
                         </div>
                         <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
                     </a>
+                    
+                    <!-- Upload CV File -->
+                    <a href="{{ route('admin.cv-files.create') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 mr-4">
+                                <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                    <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-white mb-1">Upload CV File</h4>
+                                <p class="text-sm text-blue-300">Add a new CV document</p>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
+                    </a>
 
                     <!-- Messages -->
                     <a href="{{ route('admin.messages.index') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
@@ -178,6 +248,24 @@
                             <div>
                                 <h4 class="text-lg font-semibold text-white mb-1">Check Messages</h4>
                                 <p class="text-sm text-blue-300">View and respond to messages</p>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
+                    </a>
+                    
+                    <!-- Contact Information -->
+                    <a href="{{ route('admin.contact-information.edit') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 mr-4">
+                                <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                    <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-white mb-1">Update Contact Info</h4>
+                                <p class="text-sm text-blue-300">Edit contact details</p>
                             </div>
                         </div>
                         <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
@@ -320,6 +408,24 @@
                             <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
                         </a>
 
+                        <!-- Contact Information -->
+                        <a href="{{ route('admin.contact-information.index') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 mr-4">
+                                    <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                        <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-white mb-1">Contact Information</h4>
+                                    <p class="text-sm text-blue-300">Manage contact details</p>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
+                        </a>
+
                         <!-- Coming Soon -->
                         <a href="{{ route('admin.coming-soon.index') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
                             <div class="flex items-center">
@@ -351,6 +457,25 @@
                                 <div>
                                     <h4 class="text-lg font-semibold text-white mb-1">Zhyar CV</h4>
                                     <p class="text-sm text-blue-300">Manage CV information</p>
+                                </div>
+                            </div>
+                            <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>
+                        </a>
+                        
+                        <!-- CV Files -->
+                        <a href="{{ route('admin.cv-files.index') }}" class="group relative bg-blue-900/90 backdrop-blur-xl p-6 rounded-2xl border border-blue-700/50 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-900/95">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 mr-4">
+                                    <div class="p-3 bg-blue-800/50 rounded-xl group-hover:bg-blue-800/70 transition-colors">
+                                        <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v6m-3-3h6" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-lg font-semibold text-white mb-1">CV Files</h4>
+                                    <p class="text-sm text-blue-300">Manage CV file uploads</p>
                                 </div>
                             </div>
                             <div class="absolute bottom-0 left-0 h-1 w-0 bg-gradient-to-r from-blue-500 to-blue-700 group-hover:w-full transition-all duration-300 rounded-b-2xl"></div>

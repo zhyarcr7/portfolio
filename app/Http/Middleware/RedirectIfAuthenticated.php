@@ -21,9 +21,16 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // Check if the user is an admin and redirect accordingly
-                if (Auth::guard($guard)->user()->is_admin) {
-                    return redirect(RouteServiceProvider::ADMIN_HOME);
+                // Check if accessing admin routes
+                if ($request->is('admin*')) {
+                    // Only allow admin users to access admin routes
+                    if (Auth::guard($guard)->user()->is_admin) {
+                        // Admin user is already authenticated and trying to access login
+                        return redirect(RouteServiceProvider::ADMIN_HOME);
+                    } else {
+                        // Not an admin, redirect to user dashboard
+                        return redirect(RouteServiceProvider::HOME);
+                    }
                 }
                 
                 return redirect(RouteServiceProvider::HOME);

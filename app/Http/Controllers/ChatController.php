@@ -19,21 +19,33 @@ class ChatController extends Controller
      * If the user is an admin, show all conversations.
      * If the user is not an admin, show only their conversations.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $perPage = 15; // Number of conversations per page
 
         if ($user->is_admin) {
             // Admin sees all conversations, ordered by last message
-            $conversations = Conversation::with(['user', 'latestMessage'])
-                ->orderBy('last_message_at', 'desc')
-                ->get();
+            $conversationsQuery = Conversation::with(['user', 'latestMessage'])
+                ->orderBy('last_message_at', 'desc');
         } else {
             // Regular user sees only their conversations
-            $conversations = $user->conversations()
+            $conversationsQuery = $user->conversations()
                 ->with(['latestMessage'])
-                ->orderBy('last_message_at', 'desc')
-                ->get();
+                ->orderBy('last_message_at', 'desc');
+        }
+        
+        // Paginate the results
+        $conversations = $conversationsQuery->paginate($perPage);
+        
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $html = view('chat.partials.conversation-list', compact('conversations'))->render();
+            return response()->json([
+                'html' => $html,
+                'hasMorePages' => $conversations->hasMorePages(),
+                'nextPageUrl' => $conversations->nextPageUrl(),
+            ]);
         }
 
         return view('chat.index', compact('conversations'));
@@ -42,7 +54,7 @@ class ChatController extends Controller
     /**
      * Show the conversation.
      */
-    public function show(Conversation $conversation)
+    public function show(Request $request, Conversation $conversation)
     {
         // Check if the user is authorized to view this conversation
         if (Auth::user()->id !== $conversation->user_id && !Auth::user()->is_admin) {
@@ -70,9 +82,45 @@ class ChatController extends Controller
             $conversation->save();
         }
 
-        $messages = $conversation->messages()->with('user')->get();
+        // Begin query builder for messages
+        $messagesQuery = $conversation->messages()->with('user');
         
-        return view('chat.show', compact('conversation', 'messages'));
+        // Filter for older messages pagination
+        if ($request->has('before') && $request->input('before')) {
+            $messagesQuery->where('id', '<', $request->input('before'));
+        }
+        
+        // Order by creation date (newest first to show recent messages immediately)
+        $messagesQuery->orderBy('created_at', 'desc');
+        
+        // Paginate results
+        $perPage = 20;
+        $messages = $messagesQuery->paginate($perPage);
+        
+        // Get conversations for the sidebar
+        $user = Auth::user();
+        if ($user->is_admin) {
+            $conversations = Conversation::with(['user', 'latestMessage'])
+                ->orderBy('last_message_at', 'desc')
+                ->get();
+        } else {
+            $conversations = $user->conversations()
+                ->with(['latestMessage'])
+                ->orderBy('last_message_at', 'desc')
+                ->get();
+        }
+        
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            $html = view('chat.partials.message-list', compact('conversation', 'messages'))->render();
+            return response()->json([
+                'html' => $html,
+                'hasMorePages' => $messages->hasMorePages(),
+                'nextPageUrl' => $messages->nextPageUrl(),
+            ]);
+        }
+        
+        return view('chat.show', compact('conversation', 'messages', 'conversations'));
     }
 
     /**
@@ -163,12 +211,30 @@ class ChatController extends Controller
         }
         
         $conversation->save();
+        
+        // Load the user relationship for the message
+        $message->load('user');
+
+        // Generate HTML for this message
+        $isCurrentUser = true; // For the sender, this is always true
+        $html = view('chat.partials.single-message', [
+            'message' => $message,
+            'isCurrentUser' => $isCurrentUser
+        ])->render();
+        
+        // Send email notification
+        try {
+            $this->sendEmailNotification($conversation, $message->message, $message->is_admin);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send email notification: ' . $e->getMessage());
+        }
 
         // For AJAX requests, return JSON response
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Message sent successfully'
+                'message' => 'Message sent successfully',
+                'html' => $html
             ]);
         }
 
@@ -287,6 +353,37 @@ class ChatController extends Controller
     }
 
     /**
+     * Get conversations for the authenticated user
+     * Returns JSON response with conversation data for AJAX loading
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getConversations()
+    {
+        $user = Auth::user();
+        
+        if ($user->is_admin) {
+            $conversations = Conversation::with(['user', 'lastMessage'])
+                ->orderBy('last_message_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            $conversations = $user->conversations()
+                ->with(['lastMessage'])
+                ->orderBy('last_message_at', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        
+        return response()->json([
+            'success' => true,
+            'userId' => $user->id,
+            'conversations' => $conversations,
+            'totalCount' => $conversations->count()
+        ]);
+    }
+
+    /**
      * Poll for new messages in a conversation.
      *
      * @param  \App\Models\Conversation  $conversation
@@ -335,5 +432,47 @@ class ChatController extends Controller
         }
         
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Create a sample conversation for testing purposes
+     */
+    public function createSampleConversation()
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login')
+                ->with('error', 'You must be logged in to create a conversation.');
+        }
+        
+        // Create a new conversation
+        $conversation = Conversation::create([
+            'user_id' => $user->id,
+            'title' => 'Sample Conversation',
+            'last_message_at' => now(),
+        ]);
+        
+        // Add some sample messages
+        $messages = [
+            'This is a sample message from you',
+            'This is a sample response from the admin',
+            'How can I help you today?',
+            'Thanks for the quick response!'
+        ];
+        
+        foreach ($messages as $index => $message) {
+            ChatMessage::create([
+                'conversation_id' => $conversation->id,
+                'user_id' => $user->id,
+                'message' => $message,
+                'is_admin' => $index % 2 == 1, // Alternate between user and admin
+                'is_read' => true,
+                'created_at' => now()->subMinutes(count($messages) - $index),
+            ]);
+        }
+        
+        return redirect()->route('chat.show', $conversation)
+            ->with('success', 'Sample conversation created successfully');
     }
 } 

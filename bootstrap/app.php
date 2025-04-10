@@ -4,6 +4,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Global fix for SSL certificate issues in local development
+if (!env('PUSHER_VERIFY_SSL', true)) {
+    // Disable SSL verification for all cURL requests
+    \Illuminate\Support\Facades\URL::forceScheme('https');
+}
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

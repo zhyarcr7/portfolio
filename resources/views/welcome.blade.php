@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,6 +14,9 @@
         
         <!-- Font Awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <!-- Toastr CSS for notifications -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
         <!-- Scripts -->
             @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -160,9 +163,48 @@
             .slide.active .slide-bg {
                 transform: scale(1.1);
             }
+
+            /* Fix for slider and content sections */
+            .hero-slider-container {
+                position: relative;
+                height: 70vh;
+                width: 100%;
+                overflow: hidden;
+                margin-bottom: 2rem;
+            }
+            .slides-container {
+                position: relative;
+                height: 100%;
+                width: 100%;
+            }
+            .slide {
+                position: absolute;
+                inset: 0;
+                z-index: 0;
+                opacity: 0;
+                transition: opacity 1s ease;
+            }
+            .slide.active {
+                z-index: 10;
+                opacity: 1;
+            }
+            .main-content {
+                position: relative;
+                z-index: 20;
+                background-color: #161615;
+            }
+            .dark .main-content {
+                background-color: #0a0a0a;
+            }
+            /* Section headings */
+            .section-heading {
+                position: relative;
+                z-index: 10;
+                margin-bottom: 2rem;
+            }
             </style>
     </head>
-    <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center justify-center min-h-screen flex-col w-full">
+    <body class="bg-[#161615] dark:bg-[#0a0a0a] text-gray-200 flex flex-col min-h-screen w-full">
         <!-- Modern Navigation Bar -->
         <header class="w-full fixed top-0 left-0 right-0 z-50">
             <div class="nav-gradient py-3 md:py-4 px-4 md:px-6">
@@ -202,25 +244,25 @@
                     </div>
                     
                     <!-- Authentication Links -->
-                    @if (Route::has('login'))
-                        <div class="hidden md:flex items-center space-x-4">
+                    <div class="site-menu flex items-center ml-auto gap-3">
+                        @if (Route::has('user.login'))
                             @auth
-                                <a href="{{ url('/dashboard') }}" class="auth-button px-5 py-2 rounded-full border-2 border-white text-white hover:bg-white/10">
-                                    Dashboard
+                                <a href="{{ url('/dashboard') }}" class="auth-button px-5 py-2 text-white hover:text-white/90">
+                                    {{ __('Dashboard') }}
                                 </a>
                             @else
-                                <a href="{{ route('login') }}" class="auth-button px-5 py-2 text-white hover:text-white/90">
-                                    Login
+                                <a href="{{ route('user.login') }}" class="auth-button px-5 py-2 text-white hover:text-white/90">
+                                    {{ __('Log in') }}
                                 </a>
 
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="auth-button px-5 py-2 rounded-full border-2 border-white text-white hover:bg-white/10">
-                                        Register
+                                @if (Route::has('user.register'))
+                                    <a href="{{ route('user.register') }}" class="auth-button px-5 py-2 rounded-full border-2 border-white text-white hover:bg-white/10">
+                                        {{ __('Register') }}
                                     </a>
                                 @endif
                             @endauth
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                     
                     <!-- Mobile Menu Button -->
                     <div class="md:hidden">
@@ -248,28 +290,28 @@
                                 {{ $navItem->name }}
                             </a>
                         @endforeach
-                    
                     @endif
                     
-                    @if (Route::has('login'))
-                        <div class="pt-4 border-t border-white/20">
+                    <!-- Mobile menu links -->
+                    <div class="py-4">
+                        @if (Route::has('user.login'))
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="block py-2 text-white hover:text-white/90">
-                                    <i class="fas fa-tachometer-alt mr-2 w-6 text-center"></i> Dashboard
+                                    {{ __('Dashboard') }}
                                 </a>
                             @else
-                                <a href="{{ route('login') }}" class="block py-2 text-white hover:text-white/90">
-                                    <i class="fas fa-sign-in-alt mr-2 w-6 text-center"></i> Login
+                                <a href="{{ route('user.login') }}" class="block py-2 text-white hover:text-white/90">
+                                    {{ __('Log in') }}
                                 </a>
 
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="block py-2 text-white hover:text-white/90">
-                                        <i class="fas fa-user-plus mr-2 w-6 text-center"></i> Register
+                                @if (Route::has('user.register'))
+                                    <a href="{{ route('user.register') }}" class="block py-2 text-white hover:text-white/90">
+                                        {{ __('Register') }}
                                     </a>
                                 @endif
                             @endauth
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
             </div>
         </header>
@@ -278,8 +320,7 @@
         <div class="h-24 w-full"></div>
 
         <!-- Hero Slider Section -->
-        <div class="w-full overflow-hidden mb-12 md:mb-16">
-            <div class="hero-slider relative h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh]">
+        <div class="hero-slider-container">
                 @php
                     use Illuminate\Support\Str;
                     
@@ -296,20 +337,17 @@
                                 'description' => 'Explore my latest work and get in touch for collaboration opportunities.',
                                 'bgImage' => 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80',
                                 'ctaText' => 'View Projects',
-                                'ctaLink' => '#',
+                            'ctaLink' => '#works',
                                 'secondaryCtaText' => 'Contact Me',
-                                'secondaryCtaLink' => '#',
+                            'secondaryCtaLink' => '#contact',
                                 'highlightedText' => 'Featured'
                             ]
                         ]);
                     }
                 @endphp
-                
-                <!-- Slider Container -->
                 <div class="slides-container">
                     @foreach($activeSlides as $index => $slide)
-                        <div class="slide absolute inset-0 transition-opacity duration-1000 ease-in-out {{ $index === 0 ? 'opacity-100 z-10 active' : 'opacity-0 z-0' }}" 
-                             data-slide-index="{{ $index }}">
+                    <div class="slide {{ $index === 0 ? 'active' : '' }}" data-slide-index="{{ $index }}">
                             <!-- Slide Background -->
                             <div class="absolute inset-0 bg-cover bg-center slide-bg" style="background-image: url('{{ 
                                 !empty($slide->bgImage) 
@@ -348,7 +386,7 @@
                                     
                                     <div class="slide-element slide-element-5 flex flex-wrap gap-3 md:gap-4">
                                         @if(isset($slide->ctaText) && $slide->ctaText)
-                                            <a href="{{ $slide->ctaLink }}" class="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#FF750F] text-white font-medium hover:bg-[#FF750F]/90 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                                    <a href="{{ $slide->ctaLink ?? '#' }}" class="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full bg-[#FF750F] text-white font-medium hover:bg-[#FF750F]/90 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
                                                 {{ $slide->ctaText }}
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -357,7 +395,7 @@
                                         @endif
                                         
                                         @if(isset($slide->secondaryCtaText) && $slide->secondaryCtaText)
-                                            <a href="{{ $slide->secondaryCtaLink }}" class="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full border-2 border-white text-white font-medium hover:bg-white/10 transition-all duration-300 text-sm sm:text-base">
+                                    <a href="{{ $slide->secondaryCtaLink ?? '#' }}" class="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 rounded-full border-2 border-white text-white font-medium hover:bg-white/10 transition-all duration-300 text-sm sm:text-base">
                                                 {{ $slide->secondaryCtaText }}
                                             </a>
                                         @endif
@@ -369,77 +407,45 @@
                 </div>
                 
                 <!-- Navigation Arrows -->
-                <button class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#FF750F] transition-all duration-300 shadow-lg" id="prev-slide">
+            <button class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#FF750F] transition-all duration-300 shadow-lg prev-slide" id="prev-slide">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <button class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#FF750F] transition-all duration-300 shadow-lg" id="next-slide">
+            <button class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-[#FF750F] transition-all duration-300 shadow-lg next-slide" id="next-slide">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
                 
                 <!-- Pagination Dots -->
-                <div class="absolute bottom-4 sm:bottom-6 left-0 right-0 z-20 flex justify-center gap-2 sm:gap-3">
+            <div class="absolute bottom-4 sm:bottom-6 left-0 right-0 z-20 flex justify-center gap-2 sm:gap-3 pagination-dots">
                     @foreach($activeSlides as $index => $slide)
-                        <button class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/20 hover:bg-white/60 transition-all duration-300 flex items-center justify-center text-white text-xs font-bold pagination-dot {{ $index === 0 ? 'active bg-white text-[#4b0600]' : '' }}" data-index="{{ $index }}">
-                            {{ $index + 1 }}
-                        </button>
+                <button class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/50 hover:bg-white/80 transition-all duration-300 pagination-dot {{ $index === 0 ? 'active bg-white' : '' }}" data-index="{{ $index }}"></button>
                     @endforeach
-                </div>
             </div>
         </div>
 
-        <!-- Original content continues here -->
-        <div class="w-full lg:max-w-4xl max-w-[335px] text-sm mb-6 not-has-[nav]:hidden">
-            @if (Route::has('login'))
-                <nav class="flex items-center justify-end gap-4 hidden">
-                    @auth
-                        <a
-                            href="{{ url('/dashboard') }}"
-                            class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal"
-                        >
-                            Dashboard
-                        </a>
-                    @else
-                        <a
-                            href="{{ route('login') }}"
-                            class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal"
-                        >
-                            Log in
-                        </a>
-
-                        @if (Route::has('register'))
-                            <a
-                                href="{{ route('register') }}"
-                                class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#62605b] rounded-sm text-sm leading-normal">
-                                Register
-                            </a>
-                        @endif
-                    @endauth
-                </nav>
-            @endif
-        </div>
-        
-        <!-- Rest of the original content -->
-        <div class="flex items-center justify-center w-full transition-opacity opacity-100 duration-750 lg:grow starting:opacity-0">
-            <main class="flex w-full flex-col-reverse lg:flex-row">
+        <!-- Main Content Area -->
+        <div class="main-content w-full flex-grow">
                 <!-- Database Content Sections -->
-                <div class="w-full mt-8 px-4">
+            <div class="w-full px-4">
                     <!-- Featured Works Section -->
-                    @if(isset($sections['works']))
-                    <section id="works" class="py-16 border-t">
+                @if(isset($sections['works']) && (is_object($sections['works']) ? $sections['works']->is_active : $sections['works']))
+                    <section id="works" class="py-16 border-t border-gray-800">
                         <div class="container mx-auto px-4">
-                            <div class="text-center mb-10">
-                                <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">Featured Works</h2>
+                            <div class="section-heading text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">{{ $sections['works']->title ?? 'Featured Works' }}</h2>
                                 <div class="w-20 h-1 bg-gradient-to-r from-[#4b0600] to-[#FF750F] mx-auto"></div>
+                            @if(isset($sections['works']->description))
+                            <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{{ $sections['works']->description }}</p>
+                            @endif
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                @if(count($works) > 0)
+                            @if(isset($works) && count($works) > 0)
                                     @foreach($works as $work)
-                                    <div class="bg-white dark:bg-[#161615] rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
+                                    <div class="bg-[#222222] dark:bg-[#161615] rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                                         <div class="h-48 overflow-hidden">
                                             @if($work->image_url)
                                                 <img src="{{ $work->image_url }}" alt="{{ $work->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
@@ -450,65 +456,70 @@
                                             @endif
                                         </div>
                                         <div class="p-5">
-                                            <h3 class="text-xl font-bold mb-2 text-[#1b1b18] dark:text-[#EDEDEC] line-clamp-1">{{ $work->title }}</h3>
-                                            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ Str::limit($work->description, 100) }}</p>
+                                            <h3 class="text-xl font-bold mb-2 text-white dark:text-[#EDEDEC] line-clamp-1">{{ $work->title }}</h3>
+                                            <p class="text-gray-300 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ Str::limit($work->description, 100) }}</p>
                                             
                                             @if($work->technologies)
                                             <div class="mb-4">
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Technologies used:</p>
+                                            <p class="text-xs text-gray-400 dark:text-gray-400 mb-1">Technologies:</p>
                                                 <div class="flex flex-wrap gap-1">
                                                     @foreach(explode(',', $work->technologies) as $tech)
-                                                    <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 text-xs">{{ $tech }}</span>
+                                                <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-300 text-xs">{{ trim($tech) }}</span>
                                                     @endforeach
                                                 </div>
                                             </div>
                                             @endif
                                             
                                             <div class="flex justify-between items-center">
-                                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $work->category }}</span>
-                                                <a href="#" class="text-sm text-[#FF750F] hover:text-[#4b0600] flex items-center">
+                                                <span class="text-xs text-gray-400 dark:text-gray-400">{{ $work->category }}</span>
+                                            @if($work->details_link)
+                                            <a href="{{ $work->details_link }}" target="_blank" class="text-sm text-[#FF750F] hover:text-[#4b0600] flex items-center">
                                                     View Details <i class="fas fa-arrow-right ml-1"></i>
                                                 </a>
+                                            @endif
                                             </div>
                                         </div>
                                     </div>
                                     @endforeach
                                 @else
                                     <div class="col-span-full bg-gray-100 dark:bg-gray-800 rounded-lg p-10 text-center">
-                                        <div class="text-[#FF750F] text-5xl mb-4">
-                                            <i class="fas fa-briefcase"></i>
-                                        </div>
+                                    <div class="text-[#FF750F] text-5xl mb-4"><i class="fas fa-briefcase"></i></div>
                                         <h3 class="text-xl font-bold mb-2 dark:text-white">No Works Found</h3>
-                                        <p class="text-gray-600 dark:text-gray-400">There are no works to display at the moment.</p>
+                                    <p class="text-gray-400 dark:text-gray-400">Featured works will be added soon.</p>
                                     </div>
                                 @endif
                             </div>
                             
+                        @if(isset($works) && count($works) > 3) {{-- Assuming pagination or a separate page exists --}}
                             <div class="text-center mt-8">
                                 <a href="#" class="inline-flex items-center px-6 py-3 bg-[#FF750F] text-white rounded-md hover:bg-[#4b0600] transition-colors shadow-md hover:shadow-lg">
                                     View All Works <i class="fas fa-arrow-right ml-2"></i>
                                 </a>
                             </div>
+                        @endif
                         </div>
                     </section>
                     @endif
                     
                     <!-- Blog Section -->
-                    @if(isset($sections['blogs']))
-                    <section id="blogs" class="py-16 bg-gray-50 dark:bg-[#1F1F1E]">
+                @if(isset($sections['blogs']) && (is_object($sections['blogs']) ? $sections['blogs']->is_active : $sections['blogs']))
+                    <section id="blogs" class="py-16 bg-[#1a1a1a] dark:bg-[#1F1F1E]">
                         <div class="container mx-auto px-4">
-                            <div class="text-center mb-10">
-                                <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">Latest Blog Posts</h2>
+                            <div class="section-heading text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">{{ $sections['blogs']->title ?? 'Latest Blog Posts' }}</h2>
                                 <div class="w-20 h-1 bg-gradient-to-r from-[#4b0600] to-[#FF750F] mx-auto"></div>
+                             @if(isset($sections['blogs']->description))
+                            <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{{ $sections['blogs']->description }}</p>
+                            @endif
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                @if(count($blogs) > 0)
+                            @if(isset($blogs) && count($blogs) > 0)
                                     @foreach($blogs as $blog)
-                                    <div class="bg-white dark:bg-[#161615] rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                                    <div class="bg-[#222222] dark:bg-[#161615] rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                                         <div class="h-48 overflow-hidden bg-gray-100 dark:bg-gray-800">
                                             @if(isset($blog->image) && $blog->image)
-                                                <img src="{{ $blog->image }}" alt="{{ $blog->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                                            <img src="{{ asset('storage/' . $blog->image) }}" alt="{{ $blog->title }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center">
                                                     <i class="fas fa-file-alt text-4xl text-gray-400"></i>
@@ -516,13 +527,13 @@
                                             @endif
                                         </div>
                                         <div class="p-5">
-                                            <div class="flex items-center mb-3">
-                                                <span class="bg-[#FF750F] bg-opacity-10 text-[#FF750F] text-xs px-2 py-1 rounded truncate max-w-[120px]">{{ $blog->category ?? 'General' }}</span>
-                                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-auto">{{ $blog->created_at->format('M d, Y') }}</span>
+                                        <div class="flex items-center justify-between mb-3">
+                                            <span class="bg-[#FF750F] bg-opacity-10 text-[#FF750F] text-xs px-2 py-1 rounded truncate max-w-[120px]">{{ $blog->category->name ?? 'General' }}</span>
+                                            <span class="text-xs text-gray-400 dark:text-gray-400">{{ $blog->created_at->format('M d, Y') }}</span>
                                             </div>
-                                            <h3 class="text-xl font-bold mb-2 text-[#1b1b18] dark:text-[#EDEDEC] line-clamp-1">{{ $blog->title }}</h3>
-                                            <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ Str::limit($blog->excerpt ?? $blog->content, 100) }}</p>
-                                            <a href="#" class="text-sm text-[#FF750F] hover:text-[#4b0600] flex items-center">
+                                            <h3 class="text-xl font-bold mb-2 text-white dark:text-[#EDEDEC] line-clamp-1">{{ $blog->title }}</h3>
+                                        <p class="text-gray-300 dark:text-gray-300 text-sm mb-4 line-clamp-3">{{ Str::limit($blog->excerpt ?? strip_tags($blog->content), 100) }}</p>
+                                        <a href="{{ route('blog.show', $blog->slug) }}" class="text-sm text-[#FF750F] hover:text-[#4b0600] flex items-center">
                                                 Read More <i class="fas fa-arrow-right ml-1"></i>
                                             </a>
                                         </div>
@@ -530,41 +541,44 @@
                                     @endforeach
                                 @else
                                     <div class="col-span-full bg-white dark:bg-gray-800 rounded-lg p-10 text-center">
-                                        <div class="text-[#FF750F] text-5xl mb-4">
-                                            <i class="fas fa-blog"></i>
-                                        </div>
+                                    <div class="text-[#FF750F] text-5xl mb-4"><i class="fas fa-blog"></i></div>
                                         <h3 class="text-xl font-bold mb-2 dark:text-white">No Blog Posts Found</h3>
-                                        <p class="text-gray-600 dark:text-gray-400">There are no blog posts to display at the moment.</p>
+                                    <p class="text-gray-400 dark:text-gray-400">Blog posts will be added soon.</p>
                                     </div>
                                 @endif
                             </div>
                             
+                        @if(isset($blogs) && count($blogs) > 3) {{-- Assuming pagination or a separate page exists --}}
                             <div class="text-center mt-8">
                                 <a href="#" class="inline-flex items-center px-6 py-3 bg-[#FF750F] text-white rounded-md hover:bg-[#4b0600] transition-colors shadow-md hover:shadow-lg">
                                     View All Posts <i class="fas fa-arrow-right ml-2"></i>
                                 </a>
                             </div>
+                        @endif
                         </div>
                     </section>
                     @endif
                     
                     <!-- Testimonials Section -->
-                    @if(isset($sections['testimonials']))
-                    <section id="testimonials" class="py-16 border-t">
+                @if(isset($sections['testimonials']) && (is_object($sections['testimonials']) ? $sections['testimonials']->is_active : $sections['testimonials']))
+                    <section id="testimonials" class="py-16 border-t border-gray-800">
                         <div class="container mx-auto px-4">
-                            <div class="text-center mb-10">
-                                <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">Client Testimonials</h2>
+                            <div class="section-heading text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">{{ $sections['testimonials']->title ?? 'Client Testimonials' }}</h2>
                                 <div class="w-20 h-1 bg-gradient-to-r from-[#4b0600] to-[#FF750F] mx-auto"></div>
+                            @if(isset($sections['testimonials']->description))
+                            <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{{ $sections['testimonials']->description }}</p>
+                            @endif
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                @if(count($testimonials) > 0)
+                            @if(isset($testimonials) && count($testimonials) > 0)
                                     @foreach($testimonials as $testimonial)
-                                    <div class="bg-white dark:bg-[#161615] rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div class="bg-[#222222] dark:bg-[#161615] rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                                         <div class="flex items-center mb-4">
                                             <div class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mr-4 flex-shrink-0">
                                                 @if(isset($testimonial->image) && $testimonial->image)
-                                                    <img src="{{ $testimonial->image }}" alt="{{ $testimonial->name }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('storage/' . $testimonial->image) }}" alt="{{ $testimonial->name }}" class="w-full h-full object-cover">
                                                 @else
                                                     <div class="w-full h-full flex items-center justify-center bg-[#FF750F]">
                                                         <span class="text-white font-bold text-lg">{{ substr($testimonial->name, 0, 1) }}</span>
@@ -572,31 +586,27 @@
                                                 @endif
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <h4 class="font-bold text-[#1b1b18] dark:text-[#EDEDEC] truncate">{{ $testimonial->name }}</h4>
-                                                <p class="text-sm text-gray-600 dark:text-gray-400 truncate">{{ $testimonial->position }} at {{ $testimonial->company }}</p>
+                                                <h4 class="font-bold text-white dark:text-[#EDEDEC] truncate">{{ $testimonial->name }}</h4>
+                                            <p class="text-sm text-gray-300 dark:text-gray-300 truncate">{{ $testimonial->position }} {{ $testimonial->company ? 'at ' . $testimonial->company : '' }}</p>
                                             </div>
                                         </div>
                                         <div class="mb-3">
+                                        @if(isset($testimonial->rating))
                                             <div class="flex text-yellow-400 mb-2">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                    @if($i <= $testimonial->rating)
-                                                        <i class="fas fa-star"></i>
-                                                    @else
-                                                        <i class="far fa-star"></i>
-                                                    @endif
+                                                <i class="{{ $i <= $testimonial->rating ? 'fas' : 'far' }} fa-star"></i>
                                                 @endfor
                                             </div>
-                                            <p class="text-gray-600 dark:text-gray-300 text-sm sm:text-base">{{ $testimonial->feedback }}</p>
+                                        @endif
+                                            <p class="text-gray-300 dark:text-gray-300 text-sm sm:text-base">{{ $testimonial->feedback }}</p>
                                         </div>
                                     </div>
                                     @endforeach
                                 @else
                                     <div class="col-span-full bg-white dark:bg-gray-800 rounded-lg p-10 text-center">
-                                        <div class="text-[#FF750F] text-5xl mb-4">
-                                            <i class="fas fa-quote-right"></i>
-                                        </div>
+                                    <div class="text-[#FF750F] text-5xl mb-4"><i class="fas fa-quote-right"></i></div>
                                         <h3 class="text-xl font-bold mb-2 dark:text-white">No Testimonials Found</h3>
-                                        <p class="text-gray-600 dark:text-gray-400">There are no testimonials to display at the moment.</p>
+                                    <p class="text-gray-400 dark:text-gray-400">Testimonials will be added soon.</p>
                                     </div>
                                 @endif
                             </div>
@@ -605,31 +615,32 @@
                     @endif
                     
                     <!-- Zhyar CV Section -->
-                    @if(isset($sections['zhyarcv']))
-                    <section id="zhyarcv" class="py-16 bg-gray-50 dark:bg-[#1F1F1E]">
+                @if(isset($sections['zhyarcv']) && (is_object($sections['zhyarcv']) ? $sections['zhyarcv']->is_active : $sections['zhyarcv']))
+                    <section id="zhyarcv" class="py-16 bg-[#1a1a1a] dark:bg-[#1F1F1E]">
                         <div class="container mx-auto px-4">
-                            <div class="text-center mb-10">
-                                <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">Zhyar's CV</h2>
-                                <div class="w-20 h-1 bg-gradient-to-r from-[#4b0600] to-[#FF750F] mx-auto"></div>
+                            <div class="section-heading text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">{{ $sections['zhyarcv']->title ?? "Zhyar's CV" }}</h2>
+                             @if(isset($sections['zhyarcv']->description))
+                            <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{{ $sections['zhyarcv']->description }}</p>
+                            @endif
                             </div>
 
-                            <div class="bg-white dark:bg-[#161615] rounded-lg p-4 md:p-6 lg:p-8 shadow-xl mx-auto">
+                        <div class="bg-[#222222] dark:bg-[#161615] rounded-lg p-4 md:p-6 lg:p-8 shadow-xl mx-auto max-w-4xl">
                                 @if(isset($zhyarCv))
                                 <div class="mb-6 border-b pb-5">
-                                    <h3 class="text-2xl font-bold mb-3 text-[#1b1b18] dark:text-[#EDEDEC]">Professional Summary</h3>
-                                    <p class="text-gray-600 dark:text-gray-300">
-                                        {{ $zhyarCv->summary }}
-                                    </p>
+                                    <h3 class="text-3xl font-bold mb-3 text-white dark:text-[#EDEDEC]">Professional Summary</h3>
+                                    <h4 class="text-xl font-semibold mb-3 text-[#FF750F]">{{ $zhyarCv->title }}</h4>
+                                    <p class="text-gray-300 dark:text-gray-300">{{ $zhyarCv->content }}</p>
                                 </div>
                                 
                                 <div class="mb-6">
-                                    <h3 class="text-2xl font-bold mb-3 text-[#1b1b18] dark:text-[#EDEDEC]">Work Experience</h3>
+                                    <h3 class="text-2xl font-bold mb-3 text-white dark:text-[#EDEDEC]">Work Experience</h3>
                                     
                                     @if($zhyarCv->work_experience)
                                         @foreach($zhyarCv->work_experience as $experience)
                                         <div class="mb-4">
                                             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2">
-                                                <h4 class="text-xl font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">{{ $experience['position'] }}</h4>
+                                                <h4 class="text-xl font-semibold text-white dark:text-[#EDEDEC]">{{ $experience['position'] }}</h4>
                                                 <span class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-gray-600 dark:text-gray-300 inline-block sm:ml-2 mt-1 sm:mt-0">{{ $experience['year_start'] }} - {{ $experience['year_end'] }}</span>
                                             </div>
                                             <h5 class="text-[#FF750F] mb-2">{{ $experience['company'] }}</h5>
@@ -644,7 +655,7 @@
                                 </div>
                                 
                                 <div class="mb-6">
-                                    <h3 class="text-2xl font-bold mb-3 text-[#1b1b18] dark:text-[#EDEDEC]">Skills</h3>
+                                    <h3 class="text-2xl font-bold mb-3 text-white dark:text-[#EDEDEC]">Skills</h3>
                                     
                                     @if($zhyarCv->skills)
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -654,15 +665,15 @@
                                             
                                             @if(is_array($skillsData))
                                                 @foreach($skillsData as $category => $skills)
-                                                    <div>
-                                                        <h4 class="font-semibold mb-2 text-[#1b1b18] dark:text-[#EDEDEC]">{{ $category }}</h4>
-                                                        <div class="flex flex-wrap gap-2">
-                                                            @foreach($skills as $skill)
-                                                                <span class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-gray-600 dark:text-gray-300 text-sm">{{ $skill }}</span>
-                                                            @endforeach
-                                                        </div>
+                                                <div>
+                                                    <h4 class="font-semibold mb-2 text-white dark:text-[#EDEDEC]">{{ $category }}</h4>
+                                                    <div class="flex flex-wrap gap-2">
+                                                        @foreach($skills as $skill)
+                                                            <span class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-gray-600 dark:text-gray-300 text-sm">{{ $skill }}</span>
+                                                        @endforeach
                                                     </div>
-                                                @endforeach
+                                                </div>
+                                            @endforeach
                                             @else
                                                 <div class="col-span-2">
                                                     <p class="text-gray-500">Skills data format is invalid.</p>
@@ -674,7 +685,7 @@
                                 
                                 @if($zhyarCv->education)
                                 <div class="mb-6">
-                                    <h3 class="text-2xl font-bold mb-3 text-[#1b1b18] dark:text-[#EDEDEC]">Education</h3>
+                                    <h3 class="text-2xl font-bold mb-3 text-white dark:text-[#EDEDEC]">Education</h3>
                                     
                                     @php
                                         $educationData = is_string($zhyarCv->education) ? json_decode($zhyarCv->education, true) : $zhyarCv->education;
@@ -682,17 +693,17 @@
                                     
                                     @if(is_array($educationData))
                                         @foreach($educationData as $edu)
-                                            <div class="mb-3">
-                                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1">
-                                                    <h4 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">{{ $edu['degree'] }}</h4>
-                                                    <span class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-gray-600 dark:text-gray-300 inline-block sm:ml-2 mt-1 sm:mt-0">{{ $edu['year_start'] }} - {{ $edu['year_end'] }}</span>
-                                                </div>
-                                                <h5 class="font-medium text-[#FF750F] dark:text-[#FF750F]">{{ $edu['institution'] }}, {{ $edu['location'] }}</h5>
-                                                @if(isset($edu['description']))
-                                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $edu['description'] }}</p>
-                                                @endif
+                                        <div class="mb-3">
+                                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1">
+                                                <h4 class="text-lg font-semibold text-white dark:text-[#EDEDEC]">{{ $edu['degree'] }}</h4>
+                                                <span class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded text-gray-600 dark:text-gray-300 inline-block sm:ml-2 mt-1 sm:mt-0">{{ $edu['year_start'] }} - {{ $edu['year_end'] }}</span>
                                             </div>
-                                        @endforeach
+                                                <h5 class="font-medium text-[#FF750F] dark:text-[#FF750F]">{{ $edu['institution'] }}, {{ $edu['location'] }}</h5>
+                                            @if(isset($edu['description']))
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $edu['description'] }}</p>
+                                            @endif
+                                        </div>
+                                    @endforeach
                                     @else
                                         <p class="text-gray-500">Education data format is invalid.</p>
                                     @endif
@@ -701,7 +712,7 @@
                                 
                                 @if($zhyarCv->certifications)
                                 <div class="mb-6">
-                                    <h3 class="text-2xl font-bold mb-3 text-[#1b1b18] dark:text-[#EDEDEC]">Certifications</h3>
+                                    <h3 class="text-2xl font-bold mb-3 text-white dark:text-[#EDEDEC]">Certifications</h3>
                                     
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         @php
@@ -710,14 +721,14 @@
                                         
                                         @if(is_array($certificationsData))
                                             @foreach($certificationsData as $cert)
-                                                <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded shadow-sm">
-                                                    <h4 class="font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">{{ $cert['name'] }}</h4>
-                                                    <p class="text-sm text-gray-700 dark:text-gray-300">{{ $cert['issuer'] }} • {{ $cert['year'] }}</p>
-                                                    @if(isset($cert['description']))
-                                                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $cert['description'] }}</p>
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                            <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded shadow-sm">
+                                                <h4 class="font-semibold text-white dark:text-[#EDEDEC]">{{ $cert['name'] }}</h4>
+                                                <p class="text-sm text-gray-700 dark:text-gray-300">{{ $cert['issuer'] }} • {{ $cert['year'] }}</p>
+                                                @if(isset($cert['description']))
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $cert['description'] }}</p>
+                                                @endif
+                                            </div>
+                                        @endforeach
                                         @else
                                             <div class="col-span-2">
                                                 <p class="text-gray-500">Certifications data format is invalid.</p>
@@ -727,20 +738,32 @@
                                 </div>
                                 @endif
                                 
-                                @if($zhyarCv->cv_file)
-                                <div class="text-center pt-3">
-                                    <a href="{{ asset('storage/cv_files/' . $zhyarCv->cv_file) }}" download class="inline-flex items-center px-6 py-3 bg-[#FF750F] text-white rounded-md hover:bg-[#4b0600] transition-colors shadow-md hover:shadow-lg">
-                                        <i class="fas fa-download mr-2"></i> Download Full CV
+                                <div class="text-center pt-5">
+                                    @php
+                                        $activeCVFile = \App\Models\CVFile::where('is_active', true)->first();
+                                    @endphp
+                                    
+                                    @if($activeCVFile)
+                                    <a href="{{ asset('storage/' . $activeCVFile->file_path) }}" download="{{ $activeCVFile->original_filename ?? 'Zhyar-CV.pdf' }}" class="inline-flex items-center px-6 py-3 bg-[#FF750F] text-white rounded-md hover:bg-[#4b0600] transition-colors shadow-md hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                        Download Full CV
                                     </a>
-                                </div>
-                                @endif
+                                    @elseif(isset($zhyarCv->file_path) && $zhyarCv->file_path)
+                                    <a href="{{ asset('storage/' . $zhyarCv->file_path) }}" download="{{ $zhyarCv->original_filename ?? basename($zhyarCv->file_path) }}" class="inline-flex items-center px-6 py-3 bg-[#FF750F] text-white rounded-md hover:bg-[#4b0600] transition-colors shadow-md hover:shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                        Download Full CV
+                                    </a>
                                 @else
                                 <div class="text-center">
-                                    <div class="text-5xl text-gray-300 dark:text-gray-700 mb-4">
-                                        <i class="fas fa-file-alt"></i>
+                                    <div class="text-5xl text-gray-300 dark:text-gray-700 mb-4"><i class="fas fa-file-alt"></i></div>
+                                    <h3 class="text-xl font-bold mb-2 dark:text-white">CV File Not Available</h3>
+                                    <p class="text-gray-500 dark:text-gray-400">The CV file will be added soon.</p>
                                     </div>
-                                    <h3 class="text-xl font-bold mb-2">CV Data Not Available</h3>
-                                    <p class="text-gray-500 dark:text-gray-400">CV information will be added soon.</p>
+                                @endif
                                 </div>
                                 @endif
                             </div>
@@ -749,493 +772,446 @@
                     @endif
                     
                     <!-- Contact Section -->
-                    @if(isset($sections['contact']))
-                    <section id="contact" class="py-16 bg-gray-50 dark:bg-[#1F1F1E]">
+                @if(isset($sections['contact']) && (is_object($sections['contact']) ? $sections['contact']->is_active : $sections['contact']))
+                <section id="contact" class="py-16 border-t border-gray-800">
                         <div class="container mx-auto px-4">
-                            <div class="text-center mb-10">
-                                <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">Get In Touch</h2>
+                            <div class="section-heading text-center mb-10">
+                            <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[#4b0600] to-[#FF750F] bg-clip-text text-transparent">{{ $sections['contact']->title ?? 'Get In Touch' }}</h2>
                                 <div class="w-20 h-1 bg-gradient-to-r from-[#4b0600] to-[#FF750F] mx-auto"></div>
+                             @if(isset($sections['contact']->description))
+                            <p class="text-gray-600 dark:text-gray-400 mt-4 max-w-2xl mx-auto">{{ $sections['contact']->description }}</p>
+                            @endif
                             </div>
 
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                                <!-- Contact Information -->
-                                <div class="bg-white dark:bg-[#161615] rounded-lg p-6 md:p-8 shadow-lg">
-                                    <h3 class="text-2xl font-bold mb-6 text-[#1b1b18] dark:text-[#EDEDEC]">Contact Information</h3>
-                                    
-                                    <div class="space-y-6">
-                                        <div class="flex items-start">
-                                            <div class="flex-shrink-0 bg-[#FF750F] p-3 rounded-lg text-white mr-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="bg-[#222222] dark:bg-[#161615] rounded-lg p-6 shadow-lg">
+                                <h3 class="text-2xl font-bold mb-4 text-white dark:text-[#EDEDEC]">Send a Message</h3>
+                                
+                                @if(session('success'))
+                                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                                        <span class="block sm:inline">{{ session('success') }}</span>
                                             </div>
+                                @endif
+                                @if(session('error'))
+                                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                                        <span class="block sm:inline">{{ session('error') }}</span>
+                                            </div>
+                                @endif
+                                @if ($errors->any())
+                                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                        </div>
+                                @endif
+
+                                <form action="{{ route('contact.submit') }}" method="POST" class="space-y-4">
+                                    @csrf
                                             <div>
-                                                <h4 class="text-xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Location</h4>
-                                                <p class="text-gray-600 dark:text-gray-300 mt-1 text-sm md:text-base">
-                                                    {{ isset($location) ? $location->address : '123 Design Street, Creative City, PC 56789' }}
-                                                </p>
-                                            </div>
+                                        <label for="name" class="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Name</label>
+                                        <input type="text" id="name" name="name" value="{{ old('name') }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-[#FF750F] focus:border-transparent dark:bg-gray-700 dark:text-white" required>
                                         </div>
                                         
-                                        <div class="flex items-start">
-                                            <div class="flex-shrink-0 bg-[#FF750F] p-3 rounded-lg text-white mr-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                                </svg>
-                                            </div>
                                             <div>
-                                                <h4 class="text-xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Email</h4>
-                                                <p class="text-gray-600 dark:text-gray-300 mt-1 break-all text-sm md:text-base">
-                                                    {{ isset($location) ? $location->contact_email : 'contact@example.com' }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="flex items-start">
-                                            <div class="flex-shrink-0 bg-[#FF750F] p-3 rounded-lg text-white mr-4">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                                            </div>
-                                            <div>
-                                                <h4 class="text-xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Phone</h4>
-                                                <p class="text-gray-600 dark:text-gray-300 mt-1 text-sm md:text-base">
-                                                    {{ isset($location) ? $location->phone : '+1 (555) 123-4567' }}
-                                                </p>
-                                            </div>
-                                        </div>
+                                        <label for="email" class="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Email</label>
+                                        <input type="email" id="email" name="email" value="{{ old('email') }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-[#FF750F] focus:border-transparent dark:bg-gray-700 dark:text-white" required>
                                     </div>
                                     
-                                    <!-- Social Media Links -->
-                                    <div class="mt-8">
-                                        <h4 class="text-xl font-bold mb-4 text-[#1b1b18] dark:text-[#EDEDEC]">Follow Me</h4>
-                                        <div class="flex flex-wrap gap-3">
-                                            <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
-                                                    <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
-                                                </svg>
-                                            </a>
-                                            <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-twitter" viewBox="0 0 16 16">
-                                                    <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
-                                                </svg>
-                                            </a>
-                                            <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
-                                                    <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
-                                                </svg>
-                                            </a>
-                                            <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
-                                                    <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
-                                                </svg>
-                                            </a>
-                                            <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                    </svg>
-                                            </a>
-                                        </div>
+                                    <div>
+                                        <label for="subject" class="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Subject</label>
+                                        <input type="text" id="subject" name="subject" value="{{ old('subject') }}" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-[#FF750F] focus:border-transparent dark:bg-gray-700 dark:text-white" required>
                                     </div>
                                     
-                                    <!-- Google Map -->
-                                    <div class="mt-8">
-                                        <h4 class="text-xl font-bold mb-4 text-[#1b1b18] dark:text-[#EDEDEC]">Find Me</h4>
-                                        <div class="rounded-lg overflow-hidden h-[200px] shadow-md">
-                                            @if(isset($location) && $location->map_url)
-                                                <iframe src="{{ $location->map_url }}" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                                            @else
-                                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.305935303!2d-74.25986548248684!3d40.69714941932609!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2suk!4v1617456744697!5m2!1sen!2suk" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <div>
+                                        <label for="message" class="block text-gray-700 dark:text-gray-300 mb-1 font-medium">Message</label>
+                                        <textarea id="message" name="message" rows="5" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-[#FF750F] focus:border-transparent dark:bg-gray-700 dark:text-white" required>{{ old('message') }}</textarea>
                                 </div>
                                 
-                                <!-- Contact Form -->
-                                <div class="bg-white dark:bg-[#161615] rounded-lg p-6 md:p-8 shadow-lg">
-                                    <h3 class="text-2xl font-bold mb-6 text-[#1b1b18] dark:text-[#EDEDEC]">Send a Message</h3>
-                                    
-                                    @if(session('success'))
-                                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                                            <p>{{ session('success') }}</p>
+                                    <button type="submit" class="w-full py-3 px-6 bg-gradient-to-r from-[#4b0600] to-[#FF750F] text-white rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                                        <i class="fas fa-paper-plane mr-2"></i> Send Message
+                                    </button>
+                                </form>
                                         </div>
-                                    @endif
-
-                                    @if(session('error'))
-                                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                                            <p>{{ session('error') }}</p>
+                            
+                            <!-- Contact Information -->
+                            <div class="bg-[#222222] dark:bg-[#161615] rounded-lg p-6 shadow-lg flex flex-col">
+                                <h3 class="text-2xl font-bold mb-6 text-white dark:text-[#EDEDEC]">Contact Information</h3>
+                                
+                                <div class="space-y-6 flex-grow">
+                                    @if($contactInfo && $contactInfo->email)
+                                    <div class="flex items-start">
+                                        <div class="bg-[#FF750F]/10 p-3 rounded-full mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                                            <i class="fas fa-envelope text-[#FF750F]"></i>
                                         </div>
-                                    @endif
-                                    
-                                    <form id="contact-form" action="{{ route('contact.submit') }}" method="POST" class="space-y-6">
-                                        @csrf
-                                        
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div>
-                                                <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Name</label>
-                                                <input type="text" name="name" id="name" required value="{{ old('name') }}" class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-[#FF750F] focus:border-[#FF750F] dark:text-white shadow-sm">
-                                                <p class="text-red-500 text-xs mt-1 error-message" id="name-error"></p>
-                                            </div>
-                                            
-                                            <div>
-                                                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Email</label>
-                                                <input type="email" name="email" id="email" required value="{{ old('email') }}" class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-[#FF750F] focus:border-[#FF750F] dark:text-white shadow-sm">
-                                                <p class="text-red-500 text-xs mt-1 error-message" id="email-error"></p>
-                                            </div>
-                                        </div>
-                                        
                                         <div>
-                                            <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
-                                            <input type="text" name="subject" id="subject" required value="{{ old('subject') }}" class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-[#FF750F] focus:border-[#FF750F] dark:text-white shadow-sm">
-                                            <p class="text-red-500 text-xs mt-1 error-message" id="subject-error"></p>
+                                            <h4 class="font-semibold text-white dark:text-[#EDEDEC]">Email</h4>
+                                            <a href="mailto:{{ $contactInfo->email }}" class="text-gray-600 dark:text-gray-400 hover:text-[#FF750F] dark:hover:text-[#FF750F] transition break-all">{{ $contactInfo->email }}</a>
                                         </div>
-                                        
+                                    </div>
+                                    @endif
+                                    
+                                    @if($contactInfo && $contactInfo->phone)
+                                    <div class="flex items-start">
+                                        <div class="bg-[#FF750F]/10 p-3 rounded-full mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                                            <i class="fas fa-phone-alt text-[#FF750F]"></i>
+                                        </div>
                                         <div>
-                                            <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Your Message</label>
-                                            <textarea name="message" id="message" rows="6" required class="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-[#FF750F] focus:border-[#FF750F] dark:text-white shadow-sm">{{ old('message') }}</textarea>
-                                            <p class="text-red-500 text-xs mt-1 error-message" id="message-error"></p>
+                                            <h4 class="font-semibold text-white dark:text-[#EDEDEC]">Phone</h4>
+                                            <a href="tel:{{ $contactInfo->phone }}" class="text-gray-600 dark:text-gray-400 hover:text-[#FF750F] dark:hover:text-[#FF750F] transition">{{ $contactInfo->phone }}</a>
                                         </div>
-                                        
-                                        <div id="response-message" class="hidden rounded px-4 py-3 mb-4"></div>
-                                        
-                                        <div class="flex justify-end">
-                                            @auth
-                                            <div class="flex space-x-4">
-                                                <a href="{{ route('chat.create') }}" class="w-full md:w-auto bg-gradient-to-r from-[#4b0600] to-[#FF750F] text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center justify-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                    </svg>
-                                                    Send Message
-                                                </a>
-                                                <button type="submit" id="submit-button" class="w-full md:w-auto bg-gradient-to-r from-[#4b0600] to-[#FF750F] text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center justify-center">
-                                                    <span id="submit-text">Send Email</span>
-                                                    <span id="loading-spinner" class="hidden ml-2">
-                                                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                    </span>
-                                                </button>
-                                            </div>
-                                            @else
-                                            <button type="submit" id="submit-button" class="w-full bg-gradient-to-r from-[#4b0600] to-[#FF750F] text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg flex items-center justify-center">
-                                                <span id="submit-text">Send Message</span>
-                                                <span id="loading-spinner" class="hidden ml-2">
-                                                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                </span>
-                                            </button>
-                                            @endauth
+                                    </div>
+                                    @endif
+                                    
+                                    @if($contactInfo && ($contactInfo->address || $contactInfo->city || $contactInfo->state || $contactInfo->country))
+                                    <div class="flex items-start">
+                                        <div class="bg-[#FF750F]/10 p-3 rounded-full mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                                            <i class="fas fa-map-marker-alt text-[#FF750F]"></i>
                                         </div>
-                                    </form>
+                                        <div>
+                                            <h4 class="font-semibold text-white dark:text-[#EDEDEC]">Location</h4>
+                                            <p class="text-gray-600 dark:text-gray-400">{{ $contactInfo->full_address }}</p>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- @if($contactInfo && $contactInfo->website)
+                                    <div class="flex items-start">
+                                        <div class="bg-[#FF750F]/10 p-3 rounded-full mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                                            <i class="fas fa-globe text-[#FF750F]"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-white dark:text-[#EDEDEC]">Website</h4>
+                                            <a href="{{ $contactInfo->website }}" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-[#FF750F] dark:hover:text-[#FF750F] transition break-all">{{ $contactInfo->website }}</a>
+                                        </div>
+                                    </div>
+                                    @endif -->
+                                    
+                                    @if($contactInfo && $contactInfo->opening_hours)
+                                    <div class="flex items-start">
+                                        <div class="bg-[#FF750F]/10 p-3 rounded-full mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                                            <i class="fas fa-clock text-[#FF750F]"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-white dark:text-[#EDEDEC]">Opening Hours</h4>
+                                            <p class="text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ $contactInfo->opening_hours }}</p>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
+                                
+                                @php
+                                    // Default social links
+                                    $defaultSocialLinks = [
+                                        ['platform' => 'LinkedIn', 'icon_class' => 'fab fa-linkedin-in', 'url' => '#'],
+                                        ['platform' => 'GitHub', 'icon_class' => 'fab fa-github', 'url' => '#'],
+                                        ['platform' => 'Behance', 'icon_class' => 'fab fa-behance', 'url' => '#'],
+                                        ['platform' => 'Instagram', 'icon_class' => 'fab fa-instagram', 'url' => '#']
+                                    ];
+                                    
+                                    $socialLinks = collect($defaultSocialLinks);
+                                    
+                                    // Check if SocialLink model exists and use it if available
+                                    if(class_exists('App\Models\SocialLink')) {
+                                        $dbSocialLinks = \App\Models\SocialLink::where('is_active', 1)->orderBy('order', 'asc')->get();
+                                        if($dbSocialLinks->count() > 0) {
+                                            $socialLinks = $dbSocialLinks;
+                                        }
+                                    }
+                                @endphp
+                                
+                                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <h4 class="font-semibold text-[#1b1b18] dark:text-[#EDEDEC] mb-3">Follow Me</h4>
+                                            <div class="flex space-x-4">
+                                        @foreach($socialLinks as $link)
+                                        <a href="{{ $link['url'] ?? $link->url ?? '#' }}" target="_blank" rel="noopener noreferrer" title="{{ $link['platform'] ?? $link->platform ?? '' }}" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[#FF750F] hover:bg-[#FF750F] hover:text-white transition duration-300">
+                                            <i class="{{ $link['icon_class'] ?? $link->icon_class ?? 'fab fa-link' }}"></i>
+                                        </a>
+                                        @endforeach
+                                            </div>
+                                        </div>
+                                
+                                @if($contactInfo && $contactInfo->map_url)
+                                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                    <h4 class="font-semibold text-[#1b1b18] dark:text-[#EDEDEC] mb-3">Find Us</h4>
+                                    <div class="w-full h-48 rounded-lg overflow-hidden">
+                                        <iframe src="{{ $contactInfo->map_url }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </section>
                     @endif
-                    
-                    <!-- This part section be a dynamic -->
-                    @if(isset($error))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
-                            <strong class="font-bold">Error!</strong>
-                            <span class="block sm:inline">{{ $error }}</span>
+            </div> <!-- End Database Content Sections -->
                         </div>
-                    @endif
-
-                    <!-- Add any new dynamic sections here -->
-                    <div id="customContentArea">
-                        <!-- This area can be used for any additional dynamic content -->
-                    </div>
-                </div>
-
             </main>
-        </div>
 
-        @if (Route::has('login'))
-            <div class="h-14.5 hidden lg:block"></div>
-        @endif
-        
-        <!-- Modern Footer with Gradient -->
-        <footer class="w-full mt-16 md:mt-20">
-            <div class="nav-gradient py-8 md:py-10 px-4 md:px-6">
-                <div class="max-w-full mx-auto">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 md:gap-10">
-                        <!-- Footer Column 1 - About -->
+    <!-- Footer -->
+    <footer class="py-8 bg-[#1b1b18] text-white mt-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                 <!-- Footer About -->
                         <div>
-                            <div class="flex items-center mb-4">
-                                <div class="text-white mr-2">
-                                    <svg width="28" height="28" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M25 5C13.954 5 5 13.954 5 25C5 36.046 13.954 45 25 45C36.046 45 45 36.046 45 25C45 13.954 36.046 5 25 5ZM25 42C15.611 42 8 34.389 8 25C8 15.611 15.611 8 25 8C34.389 8 42 15.611 42 25C42 34.389 34.389 42 25 42Z" fill="white"/>
-                                        <path d="M32.5 22.5L25 30L17.5 22.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </div>
-                                <h2 class="logo-text text-lg md:text-xl">Portfolio</h2>
-                            </div>
-                            <p class="text-white/80 mb-4 text-sm">A stunning portfolio showcasing my creative work and skills in web development, design, and digital content creation.</p>
-                            <div class="flex flex-wrap gap-3">
-                                <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
-                                        <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z"/>
-                                    </svg>
-                                </a>
-                                <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-twitter" viewBox="0 0 16 16">
-                                        <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
-                                    </svg>
-                                </a>
-                                <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-instagram" viewBox="0 0 16 16">
-                                        <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
-                                    </svg>
-                                </a>
-                                <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
-                                        <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
-                                    </svg>
-                                </a>
-                                <a href="#" class="text-white hover:text-white/80 transition-colors duration-300 bg-white/10 hover:bg-white/20 p-2 rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
-                                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                                    </svg>
-                                </a>
+                    <h3 class="text-xl font-bold mb-4">Zhyar CV</h3>
+                    <p class="text-gray-400 mb-4 text-sm">Showcasing experience, skills, and creative work in UX/UI design & web development.</p>
+                    <div class="flex space-x-4">
+                        @foreach($socialLinks as $link)
+                         <a href="{{ $link['url'] ?? $link->url ?? '#' }}" target="_blank" rel="noopener noreferrer" title="{{ $link['platform'] ?? $link->platform ?? '' }}" class="text-gray-400 hover:text-[#FF750F] transition duration-300">
+                            <i class="{{ $link['icon_class'] ?? $link->icon_class ?? 'fab fa-link' }}"></i>
+                        </a>
+                        @endforeach
                             </div>
                         </div>
                         
-                        <!-- Footer Column 2 - Quick Links -->
-                        <div class="mt-6 sm:mt-0">
-                            <h3 class="text-white font-semibold text-lg mb-4">Quick Links</h3>
-                            <ul class="grid grid-cols-2 gap-y-2 gap-x-4">
-                                @if(isset($navigationItems) && count($navigationItems) > 0)
-                                    @foreach($navigationItems as $navItem)
-                                        <li><a href="{{ $navItem->url }}" class="text-white/80 hover:text-white transition-colors duration-300 text-sm" target="{{ $navItem->target }}">{{ $navItem->name }}</a></li>
-                                    @endforeach
-                                @else
-                                    <!-- Fallback navigation if database items aren't loaded -->
-                                    <li><a href="/" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Home</a></li>
-                                    <li><a href="#works" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Works</a></li>
-                                    <li><a href="#blogs" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Blogs</a></li>
-                                    <li><a href="#testimonials" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Testimonials</a></li>
-                                    <li><a href="#about" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">About</a></li>
-                                    <li><a href="#contact" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Contact</a></li>
-                                    <li><a href="#zhyarcv" class="text-white/80 hover:text-white transition-colors duration-300 text-sm">Zhyar CV</a></li>
-                                @endif
+                <!-- Footer Quick Links -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                         @if(isset($sections['works']) && (is_object($sections['works']) ? $sections['works']->is_active : $sections['works']))<li><a href="#works" class="text-gray-400 hover:text-white transition">Works</a></li>@endif
+                         @if(isset($sections['blogs']) && (is_object($sections['blogs']) ? $sections['blogs']->is_active : $sections['blogs']))<li><a href="#blogs" class="text-gray-400 hover:text-white transition">Blogs</a></li>@endif
+                         @if(isset($sections['testimonials']) && (is_object($sections['testimonials']) ? $sections['testimonials']->is_active : $sections['testimonials']))<li><a href="#testimonials" class="text-gray-400 hover:text-white transition">Testimonials</a></li>@endif
+                         @if(isset($sections['zhyarcv']) && (is_object($sections['zhyarcv']) ? $sections['zhyarcv']->is_active : $sections['zhyarcv']))<li><a href="#zhyarcv" class="text-gray-400 hover:text-white transition">CV</a></li>@endif
+                         @if(isset($sections['contact']) && (is_object($sections['contact']) ? $sections['contact']->is_active : $sections['contact']))<li><a href="#contact" class="text-gray-400 hover:text-white transition">Contact</a></li>@endif
                             </ul>
                         </div>
                         
-                        <!-- Footer Column 3 - Contact -->
-                        <div class="mt-6 md:mt-0">
-                            <h3 class="text-white font-semibold text-lg mb-4">Contact Info</h3>
-                            <ul class="space-y-3">
-                                <li class="flex items-start">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span class="text-white/80 text-sm">123 Design Street, Creative City, PC 56789</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
-                                    <span class="text-white/80 text-sm">contact@example.com</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white mr-2 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                    <span class="text-white/80 text-sm">+1 (555) 123-4567</span>
-                                </li>
-                                <li class="pt-4">
-                                    <form class="flex flex-col sm:flex-row gap-2">
-                                        <input type="email" placeholder="Subscribe to newsletter" class="bg-white/10 text-white placeholder-white/60 rounded-lg sm:rounded-l-lg sm:rounded-r-none py-2 px-4 focus:outline-none text-sm w-full">
-                                        <button type="submit" class="bg-white text-[#4b0600] rounded-lg sm:rounded-l-none sm:rounded-r-lg px-4 py-2 font-medium hover:bg-white/90 transition-all duration-300 text-sm whitespace-nowrap">
-                                            Subscribe
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-white/20 mt-10 pt-6 text-center">
-                        <p class="text-white/60 text-sm">© {{ date('Y') }} Portfolio. All rights reserved.</p>
-                    </div>
+                <!-- Footer Contact -->
+                <div>
+                     <h3 class="text-xl font-bold mb-4">Contact Info</h3>
+                    <ul class="space-y-3 text-sm">
+                        @if($contactInfo && $contactInfo->email)
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope mt-1 mr-3 text-[#FF750F] flex-shrink-0 w-4 text-center"></i>
+                            <span class="text-gray-400 break-all">{{ $contactInfo->email }}</span>
+                        </li>
+                        @endif
+                        @if($contactInfo && $contactInfo->phone)
+                        <li class="flex items-start">
+                            <i class="fas fa-phone-alt mt-1 mr-3 text-[#FF750F] flex-shrink-0 w-4 text-center"></i>
+                            <span class="text-gray-400">{{ $contactInfo->phone }}</span>
+                        </li>
+                        @endif
+                        @if($contactInfo && ($contactInfo->address || $contactInfo->city || $contactInfo->state || $contactInfo->country))
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-[#FF750F] flex-shrink-0 w-4 text-center"></i>
+                            <span class="text-gray-400">{{ $contactInfo->full_address }}</span>
+                        </li>
+                        @endif
+                        @if($contactInfo && $contactInfo->website)
+                        <li class="flex items-start">
+                            <i class="fas fa-globe mt-1 mr-3 text-[#FF750F] flex-shrink-0 w-4 text-center"></i>
+                            <a href="{{ $contactInfo->website }}" target="_blank" class="text-gray-400 hover:text-[#FF750F]">{{ $contactInfo->website }}</a>
+                        </li>
+                        @endif
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Footer Copyright -->
+            <div class="border-t border-gray-700 pt-6 text-center">
+                <p class="text-gray-500 text-sm">&copy; {{ date('Y') }} Zhyar. All rights reserved.</p>
                 </div>
             </div>
         </footer>
         
-        <!-- Contact Form AJAX -->
+    <!-- JS Scripts -->
+    {{-- Include jQuery if needed for plugins like Slick --}}
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script> --}}
+
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const contactForm = document.getElementById('contact-form');
-                if (contactForm) {
-                    contactForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        // Show loading spinner
-                        const submitButton = document.getElementById('submit-button');
-                        const submitText = document.getElementById('submit-text');
-                        const loadingSpinner = document.getElementById('loading-spinner');
-                        const responseMessage = document.getElementById('response-message');
-                        
-                        // Clear previous error messages
-                        document.querySelectorAll('.error-message').forEach(el => {
-                            el.textContent = '';
-                        });
-                        
-                        // Hide previous response message
-                        responseMessage.classList.add('hidden');
-                        
-                        // Show loading state
-                        submitButton.disabled = true;
-                        loadingSpinner.classList.remove('hidden');
-                        
-                        // Get form data
-                        const formData = new FormData(contactForm);
-                        
-                        // Send AJAX request
-                        fetch(contactForm.action, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Hide loading spinner
-                            submitButton.disabled = false;
-                            loadingSpinner.classList.add('hidden');
-                            
-                            if (data.success) {
-                                // Show success message
-                                responseMessage.textContent = data.message || 'Your message has been sent successfully!';
-                                responseMessage.classList.remove('hidden', 'bg-red-100', 'border-red-400', 'text-red-700');
-                                responseMessage.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
-                                
-                                // Reset form
-                                contactForm.reset();
-                            } else {
-                                // Show general error message
-                                responseMessage.textContent = data.message || 'There was an error sending your message. Please try again.';
-                                responseMessage.classList.remove('hidden', 'bg-green-100', 'border-green-400', 'text-green-700');
-                                responseMessage.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
-                                
-                                // Show validation errors
-                                if (data.errors) {
-                                    Object.keys(data.errors).forEach(field => {
-                                        const errorElement = document.getElementById(`${field}-error`);
-                                        if (errorElement) {
-                                            errorElement.textContent = data.errors[field][0];
-                                        }
-                                    });
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            // Hide loading spinner
-                            submitButton.disabled = false;
-                            loadingSpinner.classList.add('hidden');
-                            
-                            // Show error message
-                            responseMessage.textContent = 'There was a network error. Please try again.';
-                            responseMessage.classList.remove('hidden', 'bg-green-100', 'border-green-400', 'text-green-700');
-                            responseMessage.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
-                        });
-                    });
-                }
-            });
-        </script>
-        
-        <!-- Mobile Menu JavaScript -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
                 const mobileMenuButton = document.getElementById('mobile-menu-button');
                 const mobileMenu = document.getElementById('mobile-menu');
+            const menuIndicatorSpans = mobileMenuButton ? mobileMenuButton.querySelectorAll('span') : [];
                 
+            if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function() {
                     mobileMenu.classList.toggle('hidden');
+                    // Animate burger icon
+                     menuIndicatorSpans[0].classList.toggle('rotate-45');
+                     menuIndicatorSpans[0].classList.toggle('top-1/2');
+                     menuIndicatorSpans[0].classList.toggle('-translate-y-1/2');
+                     menuIndicatorSpans[1].classList.toggle('opacity-0');
+                     menuIndicatorSpans[2].classList.toggle('opacity-0');
+                     menuIndicatorSpans[3].classList.toggle('-rotate-45');
+                     menuIndicatorSpans[3].classList.toggle('top-1/2');
+                     menuIndicatorSpans[3].classList.toggle('-translate-y-1/2');
                 });
-                
-                // Hero Slider Functionality
-                const slides = document.querySelectorAll('.slide');
-                const dots = document.querySelectorAll('.pagination-dot');
+            }
+
+            // Basic Hero Slider Logic (if Slick Carousel is not used/available)
+            const sliderContainer = document.querySelector('.slides-container');
+            if (sliderContainer) {
+                const slides = sliderContainer.querySelectorAll('.slide');
                 const prevButton = document.getElementById('prev-slide');
                 const nextButton = document.getElementById('next-slide');
+                const dotsContainer = document.querySelector('.pagination-dots');
                 let currentSlide = 0;
-                const totalSlides = slides.length;
+                let slideInterval;
                 
                 function showSlide(index) {
-                    // Hide all slides
-                    slides.forEach(slide => {
-                        slide.classList.remove('opacity-100', 'z-10', 'active');
+                    slides.forEach((slide, i) => {
+                        slide.classList.remove('active', 'opacity-100', 'z-10');
                         slide.classList.add('opacity-0', 'z-0');
+                        if (i === index) {
+                            slide.classList.add('active', 'opacity-100', 'z-10');
+                            slide.classList.remove('opacity-0', 'z-0');
+                        }
                     });
-                    
-                    // Show the current slide
-                    slides[index].classList.remove('opacity-0', 'z-0');
-                    slides[index].classList.add('opacity-100', 'z-10', 'active');
-                    
-                    // Update pagination dots
-                    dots.forEach(dot => {
+                    if(dotsContainer){
+                        const dots = dotsContainer.querySelectorAll('.pagination-dot');
+                         dots.forEach((dot, i) => {
                         dot.classList.remove('active', 'bg-white', 'text-[#4b0600]');
-                        dot.classList.add('bg-white/20', 'text-white');
-                    });
-                    dots[index].classList.add('active', 'bg-white', 'text-[#4b0600]');
-                    dots[index].classList.remove('bg-white/20', 'text-white');
-                    
+                             dot.classList.add('bg-white/50');
+                             if (i === index) {
+                                 dot.classList.add('active', 'bg-white', 'text-[#4b0600]');
+                                 dot.classList.remove('bg-white/50');
+                             }
+                         });
+                    }
                     currentSlide = index;
                 }
                 
-                // Auto-advance slides
-                let slideInterval = setInterval(() => {
-                    let nextIndex = (currentSlide + 1) % totalSlides;
+                function next() {
+                    let nextIndex = (currentSlide + 1) % slides.length;
                     showSlide(nextIndex);
-                }, 5000);
-                
-                // Event listeners for manual navigation
-                prevButton.addEventListener('click', () => {
-                    clearInterval(slideInterval);
-                    let prevIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+                }
+
+                function prev() {
+                     let prevIndex = (currentSlide - 1 + slides.length) % slides.length;
                     showSlide(prevIndex);
-                    
-                    // Restart auto-advance
-                    slideInterval = setInterval(() => {
-                        let nextIndex = (currentSlide + 1) % totalSlides;
-                        showSlide(nextIndex);
-                    }, 5000);
-                });
+                }
+
+                function startSlider() {
+                    stopSlider(); // Clear existing interval first
+                    slideInterval = setInterval(next, 5000); // Change slide every 5 seconds
+                }
                 
-                nextButton.addEventListener('click', () => {
+                function stopSlider() {
                     clearInterval(slideInterval);
-                    let nextIndex = (currentSlide + 1) % totalSlides;
-                    showSlide(nextIndex);
+                }
+
+                if (slides.length > 1) {
+                    if(prevButton) prevButton.addEventListener('click', () => { prev(); stopSlider(); startSlider(); });
+                    if(nextButton) nextButton.addEventListener('click', () => { next(); stopSlider(); startSlider(); });
                     
-                    // Restart auto-advance
-                    slideInterval = setInterval(() => {
-                        let nextIndex = (currentSlide + 1) % totalSlides;
-                        showSlide(nextIndex);
-                    }, 5000);
-                });
+                    if(dotsContainer){
+                         const dots = dotsContainer.querySelectorAll('.pagination-dot');
+                         dots.forEach(dot => {
+                             dot.addEventListener('click', function() {
+                                 showSlide(parseInt(this.dataset.index));
+                                 stopSlider();
+                                 startSlider();
+                             });
+                         });
+                    }
+                    
+                    // Pause on hover
+                    const heroSlider = document.querySelector('.hero-slider-container');
+                    if(heroSlider){
+                         heroSlider.addEventListener('mouseenter', stopSlider);
+                         heroSlider.addEventListener('mouseleave', startSlider);
+                    }
+
+                    startSlider(); // Start autoplay
+                    showSlide(0); // Show the first slide initially
+                } else if (slides.length === 1) {
+                     // If only one slide, ensure it's active and hide controls
+                     slides[0].classList.add('active', 'opacity-100', 'z-10');
+                     slides[0].classList.remove('opacity-0', 'z-0');
+                     if(prevButton) prevButton.style.display = 'none';
+                     if(nextButton) nextButton.style.display = 'none';
+                     if(dotsContainer) dotsContainer.style.display = 'none';
+                }
+            }
+            
+            // Dark mode toggle (if needed and not handled by app.js)
+            // Example: Add a button with id="dark-mode-toggle"
+             const darkModeToggle = document.getElementById('dark-mode-toggle'); // Assuming you add this button
+             const htmlElement = document.documentElement;
+             if (darkModeToggle) {
+                // Initial check
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    htmlElement.classList.add('dark');
+                } else {
+                    htmlElement.classList.remove('dark');
+                }
                 
-                // Click on pagination dots
-                dots.forEach((dot, index) => {
-                    dot.addEventListener('click', () => {
-                        clearInterval(slideInterval);
-                        showSlide(index);
-                        
-                        // Restart auto-advance
-                        slideInterval = setInterval(() => {
-                            let nextIndex = (currentSlide + 1) % totalSlides;
-                            showSlide(nextIndex);
-                        }, 5000);
-                    });
+                darkModeToggle.addEventListener('click', () => {
+                    if (htmlElement.classList.contains('dark')) {
+                        htmlElement.classList.remove('dark');
+                        localStorage.theme = 'light';
+                    } else {
+                        htmlElement.classList.add('dark');
+                        localStorage.theme = 'dark';
+                    }
                 });
+             }
+
+            });
+        </script>
+        
+        <!-- jQuery and Toastr for notifications -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <script>
+            // Configure toastr options
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            
+            // Check for flash messages and display toasts
+            document.addEventListener('DOMContentLoaded', function() {
+                @if(session('success'))
+                    toastr.success('{{ session('success') }}');
+                @endif
+                
+                @if(session('error'))
+                    toastr.error('{{ session('error') }}');
+                @endif
+                
+                @if(session('info'))
+                    toastr.info('{{ session('info') }}');
+                @endif
+                
+                @if(session('warning'))
+                    toastr.warning('{{ session('warning') }}');
+                @endif
+            });
+        </script>
+        
+        <!-- Contact Form JavaScript -->
+        <script src="{{ asset('js/contact-form.js') }}"></script>
+        
+        <script>
+            // CSRF Token refresh to prevent 419 errors
+            document.addEventListener('DOMContentLoaded', function() {
+                // Refresh CSRF token every 2 hours (7200000 ms)
+                setInterval(function() {
+                    fetch('/csrf-token')
+                        .then(response => response.json())
+                        .then(data => {
+                            let token = data.token;
+                            document.querySelectorAll('input[name="_token"]').forEach(function(input) {
+                                input.value = token;
+                            });
+                        })
+                        .catch(error => console.error('Error refreshing CSRF token:', error));
+                }, 7200000);
             });
         </script>
     </body>

@@ -1,55 +1,68 @@
 # Personal Portfolio Website
 
-A personal portfolio website built with Laravel 10.
+This is a personal portfolio website built with Laravel, featuring a real-time chat system using Socket.io.
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Features
 
-## About This Project
+- Portfolio showcase with works/projects
+- Admin dashboard for content management
+- Blog system
+- CV/Resume section
+- Real-time chat messaging system
+- Testimonials
 
-This is a personal portfolio website that showcases skills, experience, education, and certifications. It includes:
-
-- Modern UI with dark mode support
-- Admin panel for content management
-- Contact form with AJAX submission
-- Responsive design for all devices
-
-## Technologies Used
-
-- Laravel 10
-- MySQL
-- Bootstrap
-- AlpineJS
-- Tailwind CSS
-
-## Installation
+## Setup
 
 1. Clone the repository
-```bash
-git clone https://github.com/zhyarcr7/PersonalPortfolioWebsite.git
-```
+2. Run `composer install` to install PHP dependencies
+3. Run `npm install` to install Node.js dependencies
+4. Copy `.env.example` to `.env` and configure your environment
+5. Run `php artisan key:generate` to generate an application key
+6. Configure your database in the `.env` file
+7. Run `php artisan migrate` to create the database tables
+8. Run `php artisan db:seed` to seed the database with initial data (optional)
 
-2. Install dependencies
-```bash
-composer install
-npm install
-```
+## Running the Application
 
-3. Configure environment
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+### Laravel Server
 
-4. Set up the database in .env file and run migrations
-```bash
-php artisan migrate --seed
-```
-
-5. Start the development server
 ```bash
 php artisan serve
 ```
 
+### Socket.io Server
+
+The chat system uses Socket.io for real-time messaging. To start the Socket.io server:
+
+```bash
+node socket-server.js
+```
+
+Make sure to keep this server running alongside your Laravel application for the chat functionality to work properly.
+
+## Chat System
+
+The real-time chat system allows communication between users and administrators. It features:
+
+- Real-time messaging with Socket.io
+- Read receipts
+- Message history
+- Email notifications for new messages
+
+## Frontend Assets
+
+To compile the frontend assets:
+
+```bash
+npm run dev
+```
+
+For production:
+
+```bash
+npm run build
+```
+
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+[MIT License](LICENSE.md)

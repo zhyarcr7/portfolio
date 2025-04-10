@@ -12,6 +12,7 @@ use App\Models\ComingSoon;
 use App\Models\ZhyarCV;
 use App\Models\Message;
 use App\Models\Conversation;
+use App\Models\ContactInformation;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -37,6 +38,16 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             $counts['zhyarCv'] = 0;
         }
+        
+        // Add contact information data
+        try {
+            $contactInfo = ContactInformation::first();
+            $counts['contactInfo'] = $contactInfo ? 1 : 0;
+            $contactActive = $contactInfo && $contactInfo->is_active ? true : false;
+        } catch (\Exception $e) {
+            $counts['contactInfo'] = 0;
+            $contactActive = false;
+        }
 
         // Get recent conversations for admin
         $recentConversations = Conversation::with(['user', 'latestMessage'])
@@ -44,6 +55,6 @@ class DashboardController extends Controller
             ->take(5) // Limit to 5 recent conversations
             ->get();
 
-        return view('admin.dashboard', compact('counts', 'recentConversations'));
+        return view('admin.dashboard', compact('counts', 'recentConversations', 'contactActive'));
     }
 } 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
+use App\Models\ContactInformation;
 use App\Models\HeroSlide;
 use App\Models\Location;
 use App\Models\Navigation;
@@ -65,6 +66,21 @@ class WelcomeController extends Controller
             if (Schema::hasTable('location')) {
                 $location = Location::first();
             }
+            
+            // Get contact information if available
+            $contactInfo = null;
+            if (Schema::hasTable('contact_information')) {
+                // First try to get active contact info
+                $contactInfo = ContactInformation::where('is_active', true)->first();
+                
+                // If no active contact info, get any contact info
+                if (!$contactInfo) {
+                    $contactInfo = ContactInformation::first();
+                    Log::info('Using non-active contact info: ' . ($contactInfo ? 'Found' : 'Not found'));
+                } else {
+                    Log::info('Using active contact info');
+                }
+            }
                 
             // Parse navigation items to determine which sections to display
             $sections = [];
@@ -96,7 +112,8 @@ class WelcomeController extends Controller
                 'testimonials',
                 'sections',
                 'zhyarCv',
-                'location'
+                'location',
+                'contactInfo'
             ));
         } catch (\Exception $e) {
             Log::error('Error in WelcomeController: ' . $e->getMessage());

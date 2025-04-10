@@ -33,8 +33,12 @@
                             />
                         </div>
                     </div>
-                    <div id="conversation-list">
-                        @include('chat.partials.conversation-list')
+                    <!-- Add a loading indicator and AJAX container -->
+                    <div id="conversations-container">
+                        @include('chat.partials.conversation-list', ['conversations' => $conversations])
+                    </div>
+                    <div id="loading-indicator" class="hidden flex justify-center my-4">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
                     </div>
                 </div>
             </div>
@@ -90,6 +94,67 @@
                         console.error('Error polling conversations:', error);
                     });
             }, 10000);
+        }
+
+        let page = 1;
+        let loading = false;
+        const conversationsContainer = document.getElementById('conversations-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        // Load more conversations when scrolling to bottom
+        window.addEventListener('scroll', function() {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                if (!loading) {
+                    loadMoreConversations();
+                }
+            }
+        });
+        
+        function loadMoreConversations() {
+            loading = true;
+            page++;
+            loadingIndicator.classList.remove('hidden');
+            
+            fetch(`{{ route('chat.index') }}?page=${page}&ajax=1`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading = false;
+                loadingIndicator.classList.add('hidden');
+                
+                if (data.html) {
+                    conversationsContainer.insertAdjacentHTML('beforeend', data.html);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading more conversations:', error);
+                loading = false;
+                loadingIndicator.classList.add('hidden');
+            });
+        }
+        
+        // Auto-refresh conversations list
+        setInterval(function() {
+            refreshConversationsList();
+        }, 30000); // every 30 seconds
+        
+        function refreshConversationsList() {
+            fetch('{{ route('chat.poll-conversations') }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.html) {
+                        // Only update if user hasn't scrolled down to other pages
+                        if (page === 1) {
+                            conversationsContainer.innerHTML = data.html;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing conversations:', error);
+                });
         }
     </script>
     @endpush

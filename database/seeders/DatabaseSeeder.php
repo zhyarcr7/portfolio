@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             NavigationSeeder::class,
             HeroSlideSeeder::class,
             ZhyarCVSeeder::class,
+            SocialLinkSeeder::class,
+            ContactInformationSeeder::class,
+            ChatSeeder::class,
         ]);
     }
 } 
